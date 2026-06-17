@@ -1,0 +1,1837 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KartMetrics — Professionel Kartvurdering</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root {
+  --bg-base: #0a0b0e;
+  --bg-surface: #111318;
+  --bg-card: #161920;
+  --bg-card2: #1c1f28;
+  --bg-hover: #1f2330;
+  --accent: #e8a020;
+  --accent2: #f0c060;
+  --accent-dim: rgba(232,160,32,0.15);
+  --accent-border: rgba(232,160,32,0.35);
+  --red: #e03030;
+  --red-dim: rgba(224,48,48,0.15);
+  --green: #28c870;
+  --green-dim: rgba(40,200,112,0.15);
+  --blue: #3090e8;
+  --blue-dim: rgba(48,144,232,0.12);
+  --purple: #9060e8;
+  --text-primary: #eaedf5;
+  --text-secondary: #8a90a0;
+  --text-dim: #505868;
+  --border: rgba(255,255,255,0.07);
+  --border-strong: rgba(255,255,255,0.13);
+  --font-display: 'Rajdhani', sans-serif;
+  --font-body: 'Barlow', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* HEADER */
+.app-header {
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-strong);
+  padding: 0 24px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.logo {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+.logo span { color: var(--text-secondary); font-weight: 400; }
+
+.nav-tabs {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.nav-tab {
+  padding: 6px 16px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.15s;
+  text-transform: uppercase;
+}
+.nav-tab:hover { background: var(--bg-hover); color: var(--text-primary); }
+.nav-tab.active { background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent-border); }
+
+/* PAGES */
+.page { display: none; padding: 24px; max-width: 1200px; margin: 0 auto; }
+.page.active { display: block; }
+
+/* SECTION TITLES */
+.section-title {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* CARDS */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+}
+.card-sm { padding: 14px 16px; }
+
+/* GRID LAYOUTS */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+
+/* METRIC CARD */
+.metric-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+}
+.metric-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+.metric-value {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--accent);
+}
+.metric-sub {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+/* SCORE BADGE */
+.score-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 6px;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+}
+.score-elite { background: rgba(232,160,32,0.2); color: var(--accent); border: 1px solid var(--accent-border); }
+.score-fast { background: rgba(40,200,112,0.15); color: var(--green); border: 1px solid rgba(40,200,112,0.3); }
+.score-good { background: rgba(48,144,232,0.15); color: var(--blue); border: 1px solid rgba(48,144,232,0.3); }
+.score-avg { background: rgba(160,160,180,0.1); color: var(--text-secondary); border: 1px solid var(--border); }
+.score-bad { background: rgba(224,48,48,0.15); color: var(--red); border: 1px solid rgba(224,48,48,0.3); }
+
+/* FORM ELEMENTS */
+.form-row { margin-bottom: 16px; }
+.form-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+.form-input {
+  width: 100%;
+  background: var(--bg-card2);
+  border: 1px solid var(--border-strong);
+  border-radius: 5px;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 14px;
+  padding: 9px 12px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.form-input:focus { border-color: var(--accent); }
+.form-input[type="number"] { font-family: var(--font-mono); }
+select.form-input { cursor: pointer; }
+textarea.form-input { resize: vertical; min-height: 80px; line-height: 1.6; }
+
+/* RATING SLIDERS */
+.rating-group { margin-bottom: 24px; }
+.rating-group-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  background: var(--bg-card2);
+  border-radius: 5px;
+  border-left: 3px solid var(--accent);
+}
+.rating-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+.rating-row:last-child { border-bottom: none; }
+.rating-name {
+  min-width: 180px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.rating-slider {
+  flex: 1;
+  -webkit-appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+.rating-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  border: 2px solid var(--bg-base);
+  box-shadow: 0 0 6px rgba(232,160,32,0.4);
+}
+.rating-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  border: 2px solid var(--bg-base);
+}
+.rating-value {
+  min-width: 32px;
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--accent);
+}
+
+/* BUTTONS */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s;
+  text-transform: uppercase;
+}
+.btn-primary {
+  background: var(--accent);
+  color: #000;
+}
+.btn-primary:hover { background: var(--accent2); transform: translateY(-1px); }
+.btn-secondary {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-strong);
+}
+.btn-secondary:hover { background: var(--bg-hover); color: var(--text-primary); }
+.btn-danger {
+  background: transparent;
+  color: var(--red);
+  border: 1px solid rgba(224,48,48,0.3);
+}
+.btn-danger:hover { background: var(--red-dim); }
+.btn-full { width: 100%; justify-content: center; }
+
+/* CHECKBOXES */
+.checkbox-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--bg-card2);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.checkbox-item:hover { border-color: var(--border-strong); color: var(--text-primary); }
+.checkbox-item.checked {
+  background: rgba(224,48,48,0.1);
+  border-color: rgba(224,48,48,0.3);
+  color: #e87070;
+}
+.checkbox-item input { display: none; }
+.check-indicator {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  border: 1px solid var(--border-strong);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.checkbox-item.checked .check-indicator {
+  background: var(--red);
+  border-color: var(--red);
+}
+.check-indicator::after {
+  content: '';
+  display: none;
+  width: 6px;
+  height: 4px;
+  border-left: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+  transform: rotate(-45deg) translateY(-1px);
+}
+.checkbox-item.checked .check-indicator::after { display: block; }
+
+/* OVERALL SCORE DISPLAY */
+.overall-score-display {
+  text-align: center;
+  padding: 24px;
+  background: var(--bg-card2);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+.overall-number {
+  font-family: var(--font-display);
+  font-size: 72px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--accent);
+}
+.overall-tier {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+.score-bars { margin-top: 16px; }
+.score-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.score-bar-label { min-width: 120px; font-size: 11px; color: var(--text-secondary); text-align: right; }
+.score-bar-track {
+  flex: 1;
+  height: 5px;
+  background: var(--bg-card);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.score-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+.score-bar-num { min-width: 30px; font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); }
+
+/* RANKING TABLE */
+.rank-table { width: 100%; border-collapse: collapse; }
+.rank-table th {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.rank-table td {
+  padding: 12px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.rank-table tr:hover td { background: var(--bg-hover); cursor: pointer; }
+.rank-num {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  min-width: 28px;
+}
+.rank-kart-num {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.rank-score {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+}
+.rank-bar-wrap { display: flex; align-items: center; gap: 8px; }
+.rank-mini-bar {
+  height: 4px;
+  border-radius: 2px;
+  min-width: 4px;
+}
+.issue-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 500;
+}
+.issue-pill.none { background: var(--green-dim); color: var(--green); }
+.issue-pill.few { background: rgba(232,160,32,0.15); color: var(--accent); }
+.issue-pill.many { background: var(--red-dim); color: var(--red); }
+
+/* PROFILE */
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+.profile-kart-num {
+  font-family: var(--font-display);
+  font-size: 64px;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1;
+  min-width: 100px;
+  text-align: center;
+}
+.profile-stats { flex: 1; }
+.session-card {
+  background: var(--bg-card2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.session-card:hover { border-color: var(--border-strong); }
+.session-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.session-date { font-size: 11px; font-family: var(--font-mono); color: var(--text-dim); }
+.session-issues-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+}
+.mini-tag {
+  padding: 2px 7px;
+  background: var(--red-dim);
+  color: #e87070;
+  border-radius: 3px;
+  font-size: 10px;
+}
+.note-text {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-style: italic;
+  margin-top: 6px;
+  padding: 8px;
+  background: var(--bg-card);
+  border-left: 2px solid var(--accent-border);
+  border-radius: 0 4px 4px 0;
+}
+.analysis-block {
+  background: var(--bg-card2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--blue);
+  border-radius: 0 6px 6px 0;
+  padding: 12px 16px;
+  margin-bottom: 10px;
+}
+.analysis-block p { font-size: 13px; color: var(--text-secondary); line-height: 1.7; }
+.analysis-block strong { color: var(--text-primary); font-weight: 500; }
+
+/* DASHBOARD BEST CARD */
+.best-kart-card {
+  background: linear-gradient(135deg, rgba(232,160,32,0.1) 0%, rgba(232,160,32,0.03) 100%);
+  border: 1px solid var(--accent-border);
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+}
+.crown { font-size: 28px; margin-bottom: 4px; }
+.best-kart-num {
+  font-family: var(--font-display);
+  font-size: 56px;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1;
+}
+.best-kart-label { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); margin-top: 4px; }
+
+/* TOP5 */
+.top5-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.top5-item:last-child { border-bottom: none; }
+.top5-pos {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  min-width: 20px;
+}
+.top5-kart {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  min-width: 40px;
+}
+.top5-bar-wrap { flex: 1; display: flex; align-items: center; gap: 8px; }
+.top5-bar-track { flex: 1; height: 4px; background: var(--bg-card); border-radius: 2px; overflow: hidden; }
+.top5-bar-fill { height: 100%; border-radius: 2px; }
+.top5-score {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  min-width: 36px;
+  text-align: right;
+}
+
+/* EMPTY STATE */
+.empty-state {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--text-dim);
+}
+.empty-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.3; }
+.empty-title { font-family: var(--font-display); font-size: 18px; color: var(--text-secondary); margin-bottom: 8px; }
+
+/* SUCCESS TOAST */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: var(--green-dim);
+  border: 1px solid rgba(40,200,112,0.4);
+  color: var(--green);
+  padding: 12px 20px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  z-index: 999;
+  transform: translateY(80px);
+  opacity: 0;
+  transition: all 0.3s;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast.error {
+  background: var(--red-dim);
+  border-color: rgba(224,48,48,0.4);
+  color: var(--red);
+}
+
+/* RADAR container */
+.radar-wrap { position: relative; height: 260px; }
+
+/* MINI SCORE COLS */
+.sub-score-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--border);
+}
+.sub-score-row:last-child { border-bottom: none; }
+.sub-score-name { font-size: 12px; color: var(--text-secondary); }
+.sub-score-val {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 3px;
+  background: var(--bg-card);
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-base); }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .grid-4 { grid-template-columns: 1fr 1fr; }
+  .grid-3 { grid-template-columns: 1fr; }
+  .grid-2 { grid-template-columns: 1fr; }
+  .checkbox-grid { grid-template-columns: 1fr 1fr; }
+  .rating-name { min-width: 130px; }
+  .nav-tab { padding: 6px 10px; font-size: 11px; }
+}
+
+/* ELITE TOGGLE */
+.elite-toggle {
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  border-radius: 5px;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text-dim);
+  transition: all 0.15s;
+}
+.elite-toggle:hover { border-color: var(--accent-border); }
+.elite-toggle.active {
+  background: var(--accent-dim);
+  border-color: var(--accent-border);
+  color: var(--accent);
+}
+
+/* DELETE SMALL BUTTON */
+.btn-xs {
+  padding: 4px 8px;
+  font-size: 11px;
+  border-radius: 4px;
+}
+
+/* FADE IN */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.page.active { animation: fadeIn 0.2s ease; }
+
+/* TIER COLORS */
+.tier-elite { color: var(--accent); }
+.tier-fast { color: var(--green); }
+.tier-good { color: var(--blue); }
+.tier-avg { color: var(--text-secondary); }
+.tier-bad { color: var(--red); }
+
+/* SYNC STATUS INDICATOR */
+.sync-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  margin-left: 8px;
+}
+.sync-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+}
+.sync-indicator.offline .sync-dot { background: var(--red); }
+.sync-indicator.syncing .sync-dot { background: var(--accent); animation: pulse 1s infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="logo">KartMetrics <span>/ PRO</span></div>
+  <nav class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('dashboard')">Dashboard</button>
+    <button class="nav-tab" onclick="showPage('register')">Registrer</button>
+    <button class="nav-tab" onclick="showPage('ranking')">Rangliste</button>
+    <button class="nav-tab" onclick="showPage('profile')">Kartprofil</button>
+    <button class="nav-tab" onclick="showPage('elite')">⚡ Elite karts</button>
+    <button class="nav-tab" onclick="shareLink()" title="Kopiér link til siden">🔗 Del link</button>
+    <div class="sync-indicator" id="sync-status">
+      <span class="sync-dot"></span>
+      <span id="sync-text">Synkroniserer...</span>
+    </div>
+  </nav>
+</header>
+
+<div id="toast" class="toast"></div>
+
+<!-- DASHBOARD -->
+<div id="page-dashboard" class="page active">
+  <div style="margin-bottom:24px;">
+    <div class="section-title">Oversigt</div>
+    <div class="grid-4" id="dash-metrics"></div>
+  </div>
+  <div class="grid-2" style="margin-bottom:24px;">
+    <div>
+      <div class="section-title">Bedste kart</div>
+      <div id="dash-best"></div>
+    </div>
+    <div>
+      <div class="section-title">Top 5 karts</div>
+      <div class="card" id="dash-top5"></div>
+    </div>
+  </div>
+  <div class="grid-2" style="margin-bottom:24px;">
+    <div>
+      <div class="section-title">Fejl-oversigt</div>
+      <div class="card">
+        <div style="position:relative;height:220px;"><canvas id="issueChart" role="img" aria-label="Søjlediagram over hyppigste fejl på alle karts"></canvas></div>
+      </div>
+    </div>
+    <div>
+      <div class="section-title">Score-fordeling</div>
+      <div class="card">
+        <div style="position:relative;height:220px;"><canvas id="scoreDistChart" role="img" aria-label="Score-fordeling for alle karts"></canvas></div>
+      </div>
+    </div>
+  </div>
+  <div>
+    <div class="section-title">Alle karts — hurtig oversigt</div>
+    <div class="card" style="overflow-x:auto;">
+      <table class="rank-table" id="dash-all-table">
+        <thead><tr>
+          <th>#</th><th>Kart</th><th>Score</th><th>Tier</th><th>Sessioner</th><th>Fejl</th>
+        </tr></thead>
+        <tbody id="dash-all-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- REGISTER -->
+<div id="page-register" class="page">
+  <div class="grid-2" style="gap:24px; align-items:start;">
+    <div>
+      <!-- SESSION INFO -->
+      <div class="section-title">Sessionsoplysninger</div>
+      <div class="card" style="margin-bottom:16px;">
+        <div class="grid-2">
+          <div class="form-row">
+            <label class="form-label">Kartnummer</label>
+            <input type="number" class="form-input" id="f-kart" min="1" max="99" placeholder="F.eks. 7">
+          </div>
+          <div class="form-row">
+            <label class="form-label">Antal omgange</label>
+            <input type="number" class="form-input" id="f-laps" min="1" placeholder="F.eks. 20">
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="form-row">
+            <label class="form-label">Dato og tidspunkt</label>
+            <input type="datetime-local" class="form-input" id="f-datetime">
+          </div>
+          <div class="form-row">
+            <label class="form-label">Hurtigste omgang (valgfrit)</label>
+            <input type="text" class="form-input" id="f-laptime" placeholder="F.eks. 32.45">
+          </div>
+        </div>
+      </div>
+
+      <!-- RATINGS -->
+      <div class="section-title">Vurderinger (1–10)</div>
+      <div class="card" style="margin-bottom:16px;">
+
+        <div class="rating-group">
+          <div class="rating-group-title">🔥 Motor</div>
+          <div id="ratings-motor"></div>
+        </div>
+        <div class="rating-group">
+          <div class="rating-group-title">🎯 Styring</div>
+          <div id="ratings-steering"></div>
+        </div>
+        <div class="rating-group">
+          <div class="rating-group-title">⚖️ Balance</div>
+          <div id="ratings-balance"></div>
+        </div>
+        <div class="rating-group">
+          <div class="rating-group-title">🏁 Køreoplevelse</div>
+          <div id="ratings-driving"></div>
+        </div>
+      </div>
+
+      <!-- OVERALL -->
+      <div class="section-title">Beregnet score</div>
+      <div class="overall-score-display" style="margin-bottom:16px;">
+        <div class="overall-number" id="calc-overall">—</div>
+        <div class="overall-tier" id="calc-tier">Juster vurderingerne</div>
+        <div class="score-bars" id="calc-bars"></div>
+      </div>
+    </div>
+
+    <div>
+      <!-- ISSUES -->
+      <div class="section-title">Observerede problemer</div>
+      <div class="card" style="margin-bottom:16px;">
+        <div class="checkbox-grid" id="issues-grid"></div>
+      </div>
+
+      <!-- NOTES -->
+      <div class="section-title">Fri note</div>
+      <div class="card" style="margin-bottom:16px;">
+        <textarea class="form-input" id="f-notes" style="min-height:120px;" placeholder="F.eks. Kraftige vibrationer på langsiden. Bagenden slipper let ud af hårnålen. Bremserne bider først sent."></textarea>
+      </div>
+
+      <!-- RADAR -->
+      <div class="section-title">Radar — live preview</div>
+      <div class="card" style="margin-bottom:16px;">
+        <div class="radar-wrap"><canvas id="radarChart" role="img" aria-label="Radardiagram over kartens vurderinger"></canvas></div>
+      </div>
+
+      <!-- SUBMIT -->
+      <button class="btn btn-primary btn-full" onclick="saveSession()" style="font-size:16px; padding:14px; letter-spacing:2px;">
+        ✓ GEM SESSION
+      </button>
+      <button class="btn btn-secondary btn-full" onclick="clearForm()" style="margin-top:8px;">
+        Ryd formular
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- RANKING -->
+<div id="page-ranking" class="page">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+    <div class="section-title" style="margin:0;border:none;">Kartes rangliste</div>
+    <select class="form-input" style="width:180px;" onchange="renderRanking(this.value)">
+      <option value="overall">Sortér: Overall score</option>
+      <option value="motor">Sortér: Motor</option>
+      <option value="steering">Sortér: Styring</option>
+      <option value="balance">Sortér: Balance</option>
+      <option value="driving">Sortér: Køreoplevelse</option>
+      <option value="issues">Sortér: Færrest fejl</option>
+      <option value="sessions">Sortér: Flest sessioner</option>
+    </select>
+  </div>
+  <div class="card" style="overflow-x:auto;">
+    <table class="rank-table">
+      <thead><tr>
+        <th>Pos</th>
+        <th>Kart</th>
+        <th>Overall</th>
+        <th>Motor</th>
+        <th>Styring</th>
+        <th>Balance</th>
+        <th>Køreopl.</th>
+        <th>Sessioner</th>
+        <th>Fejl</th>
+        <th>Seneste</th>
+        <th style="text-align:center;">Handlinger</th>
+      </tr></thead>
+      <tbody id="ranking-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- PROFILE -->
+<div id="page-profile" class="page">
+  <div style="margin-bottom:16px;">
+    <div class="section-title">Vælg kart</div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;" id="profile-kart-selector"></div>
+  </div>
+  <div id="profile-content">
+    <div class="empty-state">
+      <div class="empty-icon">🏎️</div>
+      <div class="empty-title">Vælg en kart ovenfor</div>
+      <p style="font-size:13px;">Klik på et kartnummer for at se detaljeret profil</p>
+    </div>
+  </div>
+</div>
+
+<!-- ELITE KARTS -->
+<div id="page-elite" class="page">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:12px;">
+    <div>
+      <div class="section-title" style="margin:0;border:none;">⚡ Elite karts</div>
+      <div style="font-size:12px;color:var(--text-dim);margin-top:4px;">Markerede elite-karts — tilføj karts fra ranglisten</div>
+    </div>
+    <select class="form-input" id="elite-sort" style="width:220px;" onchange="renderElite()">
+      <option value="laptime">Sortér: Hurtigste omgang</option>
+      <option value="overall">Sortér: Højeste overall score</option>
+      <option value="motor">Sortér: Bedste motor</option>
+      <option value="combined">Sortér: Kombineret (fart + score)</option>
+    </select>
+  </div>
+  <div id="elite-podium" style="margin-bottom:24px;"></div>
+  <div class="card" style="overflow-x:auto;">
+    <table class="rank-table">
+      <thead><tr>
+        <th>Pos</th>
+        <th>Kart</th>
+        <th>Bedste omgang</th>
+        <th>Gns. omgang</th>
+        <th>Overall</th>
+        <th>Motor</th>
+        <th>Sessioner</th>
+      </tr></thead>
+      <tbody id="elite-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// DATA LAYER — Cloud-synced via API (replaces localStorage)
+// ============================================================
+
+let _cachedSessions = [];
+let _cachedElite = [];
+let _lastHash = '';
+let _syncInterval = null;
+let _isOnline = true;
+
+function getData() {
+  return _cachedSessions;
+}
+
+function getEliteKarts() {
+  return _cachedElite;
+}
+
+function setSyncStatus(status) {
+  const el = document.getElementById('sync-status');
+  const txt = document.getElementById('sync-text');
+  if (!el || !txt) return;
+  el.classList.remove('offline', 'syncing');
+  if (status === 'online') {
+    txt.textContent = 'Synkroniseret';
+    _isOnline = true;
+  } else if (status === 'syncing') {
+    el.classList.add('syncing');
+    txt.textContent = 'Synkroniserer...';
+  } else if (status === 'offline') {
+    el.classList.add('offline');
+    txt.textContent = 'Ingen forbindelse';
+    _isOnline = false;
+  }
+}
+
+async function fetchSyncData() {
+  try {
+    setSyncStatus('syncing');
+    const res = await fetch('/api/sync');
+    if (!res.ok) throw new Error('Sync failed');
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    
+    const newHash = data.hash;
+    if (newHash !== _lastHash) {
+      _cachedSessions = data.sessions || [];
+      _cachedElite = data.elite || [];
+      _lastHash = newHash;
+      refreshAllViews();
+    }
+    setSyncStatus('online');
+  } catch (e) {
+    console.error('Sync error:', e);
+    setSyncStatus('offline');
+  }
+}
+
+function refreshAllViews() {
+  renderDashboard();
+  renderRanking();
+  renderProfileSelector();
+  if (document.getElementById('page-elite').classList.contains('active')) {
+    renderElite();
+  }
+}
+
+function startSync() {
+  fetchSyncData();
+  _syncInterval = setInterval(fetchSyncData, 2000);
+}
+
+async function apiSaveSession(session) {
+  try {
+    const res = await fetch('/api/sessions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(session)
+    });
+    if (!res.ok) throw new Error('Save failed');
+    await fetchSyncData();
+    return true;
+  } catch (e) {
+    console.error('Save error:', e);
+    showToast('Fejl: Kunne ikke gemme session. Prøv igen.', true);
+    return false;
+  }
+}
+
+async function apiDeleteSession(id) {
+  try {
+    const res = await fetch('/api/sessions?id=' + id, { method: 'DELETE' });
+    if (!res.ok) throw new Error('Delete failed');
+    await fetchSyncData();
+    return true;
+  } catch (e) {
+    console.error('Delete error:', e);
+    showToast('Fejl: Kunne ikke slette session. Prøv igen.', true);
+    return false;
+  }
+}
+
+async function apiDeleteKartSessions(kart) {
+  try {
+    const res = await fetch('/api/sessions?kart=' + kart, { method: 'DELETE' });
+    if (!res.ok) throw new Error('Delete failed');
+    await fetchSyncData();
+    return true;
+  } catch (e) {
+    console.error('Delete error:', e);
+    showToast('Fejl: Kunne ikke slette sessioner. Prøv igen.', true);
+    return false;
+  }
+}
+
+async function apiToggleElite(kart) {
+  try {
+    const isElite = _cachedElite.includes(kart);
+    if (isElite) {
+      const res = await fetch('/api/elite?kart=' + kart, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Delete elite failed');
+    } else {
+      const res = await fetch('/api/elite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ kart })
+      });
+      if (!res.ok) throw new Error('Add elite failed');
+    }
+    await fetchSyncData();
+    return true;
+  } catch (e) {
+    console.error('Elite toggle error:', e);
+    showToast('Fejl: Kunne ikke opdatere elite-status. Prøv igen.', true);
+    return false;
+  }
+}
+
+// ============================================================
+// ORIGINAL APP LOGIC (unchanged except data layer calls)
+// ============================================================
+
+const ISSUE_LABELS = [
+  'Vibrerer','Trækker venstre','Trækker højre','Dårlige bremser',
+  'Ujævn acceleration','Mangler topfart','Tung styring','Løs styring',
+  'Ustabil bagende','Dårligt greb','Andet'
+];
+
+const RATINGS_DEF = {
+  motor: [
+    { key:'acceleration', label:'Acceleration' },
+    { key:'torque', label:'Trækkraft ud af sving' },
+    { key:'topspeed', label:'Topfart' }
+  ],
+  steering: [
+    { key:'precision', label:'Styrepræcision' },
+    { key:'response', label:'Respons' },
+    { key:'stability', label:'Stabilitet' }
+  ],
+  balance: [
+    { key:'understeer', label:'Understyring (høj = lidt)' },
+    { key:'oversteer', label:'Overstyring (høj = lidt)' },
+    { key:'grip', label:'Greb' }
+  ],
+  driving: [
+    { key:'brakes', label:'Bremser' },
+    { key:'comfort', label:'Komfort' },
+    { key:'confidence', label:'Selvtillid i sving' },
+    { key:'overall_feel', label:'Samlet kørefølelse' }
+  ]
+};
+
+const COLOR_MOTOR = '#e8a020';
+const COLOR_STEERING = '#3090e8';
+const COLOR_BALANCE = '#28c870';
+const COLOR_DRIVING = '#9060e8';
+
+let radarChart = null;
+let issueChart = null;
+let scoreDistChart = null;
+
+function toggleElite(kart) {
+  const wasElite = _cachedElite.includes(kart);
+  // Optimistic update
+  if (wasElite) {
+    _cachedElite = _cachedElite.filter(k => k !== kart);
+    showToast('Kart #' + kart + ' fjernet fra elite');
+  } else {
+    _cachedElite.push(kart);
+    _cachedElite.sort(function(a,b){return a-b;});
+    showToast('Kart #' + kart + ' tilføjet til elite');
+  }
+  renderRanking();
+  if (document.getElementById('page-elite').classList.contains('active')) renderElite();
+  apiToggleElite(kart);
+}
+
+function deleteKartSessions(kart) {
+  if (!confirm('Vil du slette ALLE sessioner for kart #' + kart + '? Handlingen kan ikke fortrydes.')) return;
+  showToast('Alle sessioner for kart #' + kart + ' slettet');
+  _cachedSessions = _cachedSessions.filter(function(s) { return s.kart !== kart; });
+  renderDashboard();
+  renderRanking();
+  renderProfileSelector();
+  if (document.getElementById('page-elite').classList.contains('active')) renderElite();
+  apiDeleteKartSessions(kart);
+}
+
+function getScoreColor(s) {
+  if (s >= 90) return COLOR_MOTOR;
+  if (s >= 80) return COLOR_BALANCE;
+  if (s >= 70) return COLOR_STEERING;
+  if (s >= 60) return '#888';
+  return '#e03030';
+}
+function getTier(s) {
+  if (s >= 90) return ['Elite', 'tier-elite'];
+  if (s >= 80) return ['Meget hurtig', 'tier-fast'];
+  if (s >= 70) return ['God', 'tier-good'];
+  if (s >= 60) return ['Gennemsnitlig', 'tier-avg'];
+  return ['Dårlig', 'tier-bad'];
+}
+function getScoreBadgeClass(s) {
+  if (s >= 90) return 'score-elite';
+  if (s >= 80) return 'score-fast';
+  if (s >= 70) return 'score-good';
+  if (s >= 60) return 'score-avg';
+  return 'score-bad';
+}
+
+function calcScores(r) {
+  var avg = function(keys) {
+    var vals = keys.map(function(k) { return r[k] || 5; });
+    return Math.round(vals.reduce(function(a,b){return a+b;},0) / vals.length * 10);
+  };
+  var motor = avg(['acceleration','torque','topspeed']);
+  var steering = avg(['precision','response','stability']);
+  var balance = avg(['understeer','oversteer','grip']);
+  var driving = avg(['brakes','comfort','confidence','overall_feel']);
+  var overall = Math.round((motor + steering + balance + driving) / 4);
+  return { motor: motor, steering: steering, balance: balance, driving: driving, overall: overall };
+}
+
+function groupByKart(sessions) {
+  var karts = {};
+  sessions.forEach(function(s) {
+    if (!karts[s.kart]) karts[s.kart] = [];
+    karts[s.kart].push(s);
+  });
+  return karts;
+}
+
+function getKartStats(sessions) {
+  if (!sessions.length) return null;
+  var scores = sessions.map(function(s) { return calcScores(s.ratings); });
+  var avg = function(key) { return Math.round(scores.reduce(function(a,b){return a+b[key];},0) / scores.length); };
+  var issueCount = sessions.reduce(function(acc,s) { return acc + (s.issues||[]).length; }, 0);
+  var latest = sessions.sort(function(a,b){return new Date(b.datetime)-new Date(a.datetime);})[0];
+  return {
+    overall: avg('overall'),
+    motor: avg('motor'),
+    steering: avg('steering'),
+    balance: avg('balance'),
+    driving: avg('driving'),
+    sessions: sessions.length,
+    issueCount: issueCount,
+    latest: latest.datetime
+  };
+}
+
+// ---- BUILD FORM ----
+function buildForm() {
+  var now = new Date();
+  var pad = function(n) { return String(n).padStart(2,'0'); };
+  document.getElementById('f-datetime').value =
+    now.getFullYear() + '-' + pad(now.getMonth()+1) + '-' + pad(now.getDate()) + 'T' + pad(now.getHours()) + ':' + pad(now.getMinutes());
+
+  Object.entries(RATINGS_DEF).forEach(function([group, fields]) {
+    var cont = document.getElementById('ratings-' + group);
+    fields.forEach(function(f) {
+      var row = document.createElement('div');
+      row.className = 'rating-row';
+      row.innerHTML =
+        '<span class="rating-name">' + f.label + '</span>' +
+        '<input type="range" class="rating-slider" min="1" max="10" value="5" id="r-' + f.key + '" oninput="updateRatingVal(\'' + f.key + '\',this.value); updateLive()">' +
+        '<span class="rating-value" id="rv-' + f.key + '">5</span>';
+      cont.appendChild(row);
+      updateSliderGradient(f.key, 5);
+    });
+  });
+
+  var grid = document.getElementById('issues-grid');
+  ISSUE_LABELS.forEach(function(label, i) {
+    var item = document.createElement('label');
+    item.className = 'checkbox-item';
+    item.dataset.idx = i;
+    item.innerHTML = '<input type="checkbox" value="' + label + '"><span class="check-indicator"></span><span>' + label + '</span>';
+    item.addEventListener('click', function(e) {
+      e.preventDefault();
+      var cb = this.querySelector('input');
+      cb.checked = !cb.checked;
+      this.classList.toggle('checked', cb.checked);
+    });
+    grid.appendChild(item);
+  });
+
+  buildRadar();
+  updateLive();
+}
+
+function updateRatingVal(key, val) {
+  document.getElementById('rv-' + key).textContent = val;
+  updateSliderGradient(key, val);
+}
+
+function updateSliderGradient(key, val) {
+  var slider = document.getElementById('r-' + key);
+  if (!slider) return;
+  var pct = (val - 1) / 9 * 100;
+  slider.style.background = 'linear-gradient(to right, var(--accent) 0%, var(--accent) ' + pct + '%, #2a2d38 ' + pct + '%, #2a2d38 100%)';
+}
+
+function updateLive() {
+  var r = getRatingsFromForm();
+  var scores = calcScores(r);
+  var tierResult = getTier(scores.overall);
+  var tier = tierResult[0];
+  var cls = tierResult[1];
+  document.getElementById('calc-overall').textContent = scores.overall;
+  document.getElementById('calc-overall').style.color = getScoreColor(scores.overall);
+  var tierEl = document.getElementById('calc-tier');
+  tierEl.textContent = tier;
+  tierEl.className = 'overall-tier ' + cls;
+
+  var bars = document.getElementById('calc-bars');
+  bars.innerHTML = [
+    {label:'Motor', val:scores.motor, color:COLOR_MOTOR},
+    {label:'Styring', val:scores.steering, color:COLOR_STEERING},
+    {label:'Balance', val:scores.balance, color:COLOR_BALANCE},
+    {label:'Køreopl.', val:scores.driving, color:COLOR_DRIVING}
+  ].map(function(b){ return '<div class="score-bar-row"><span class="score-bar-label">' + b.label + '</span><div class="score-bar-track"><div class="score-bar-fill" style="width:' + b.val + '%;background:' + b.color + ';"></div></div><span class="score-bar-num">' + b.val + '</span></div>'; }).join('');
+
+  updateRadar(r);
+}
+
+function getRatingsFromForm() {
+  var r = {};
+  Object.values(RATINGS_DEF).flat().forEach(function(f) {
+    var el = document.getElementById('r-' + f.key);
+    r[f.key] = parseInt(el ? el.value : 5);
+  });
+  return r;
+}
+
+// ---- RADAR ----
+function buildRadar() {
+  var ctx = document.getElementById('radarChart');
+  if (!ctx) return;
+  radarChart = new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels: ['Acceleration','Topfart','Styrepræcision','Stabilitet','Greb','Bremser','Komfort','Selvtillid'],
+      datasets: [{
+        data: [5,5,5,5,5,5,5,5],
+        backgroundColor: 'rgba(232,160,32,0.15)',
+        borderColor: 'rgba(232,160,32,0.7)',
+        pointBackgroundColor: '#e8a020',
+        pointRadius: 3,
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        r: {
+          min: 0, max: 10,
+          ticks: { display: false, stepSize: 2 },
+          grid: { color: 'rgba(255,255,255,0.08)' },
+          angleLines: { color: 'rgba(255,255,255,0.08)' },
+          pointLabels: { color: '#8a90a0', font: { size: 11, family: 'Barlow' } }
+        }
+      }
+    }
+  });
+}
+
+function updateRadar(r) {
+  if (!radarChart) return;
+  radarChart.data.datasets[0].data = [
+    r.acceleration||5, r.topspeed||5, r.precision||5, r.stability||5,
+    r.grip||5, r.brakes||5, r.comfort||5, r.confidence||5
+  ];
+  radarChart.update('none');
+}
+
+// ---- SAVE ----
+async function saveSession() {
+  var kart = parseInt(document.getElementById('f-kart').value);
+  var laps = parseInt(document.getElementById('f-laps').value);
+  var datetime = document.getElementById('f-datetime').value;
+  if (!kart || kart < 1) { alert('Angiv venligst et gyldigt kartnummer.'); return; }
+  if (!laps || laps < 1) { alert('Angiv venligst antal omgange.'); return; }
+  if (!datetime) { alert('Angiv venligst dato og tidspunkt.'); return; }
+
+  var issues = Array.from(document.querySelectorAll('#issues-grid .checkbox-item.checked'))
+    .map(function(el) { return el.querySelector('input').value; });
+
+  var session = {
+    id: Date.now(),
+    kart: kart,
+    datetime: datetime,
+    laps: laps,
+    laptime: document.getElementById('f-laptime').value || null,
+    ratings: getRatingsFromForm(),
+    issues: issues,
+    notes: document.getElementById('f-notes').value || ''
+  };
+
+  var ok = await apiSaveSession(session);
+  if (ok) {
+    showToast('Session for kart #' + kart + ' gemt ✓');
+    clearForm();
+  }
+}
+
+function clearForm() {
+  document.getElementById('f-kart').value = '';
+  document.getElementById('f-laps').value = '';
+  document.getElementById('f-laptime').value = '';
+  document.getElementById('f-notes').value = '';
+  document.querySelectorAll('#issues-grid .checkbox-item').forEach(function(el) {
+    el.classList.remove('checked');
+    el.querySelector('input').checked = false;
+  });
+  Object.values(RATINGS_DEF).flat().forEach(function(f) {
+    var slider = document.getElementById('r-' + f.key);
+    if (slider) { slider.value = 5; updateRatingVal(f.key, 5); }
+  });
+  updateLive();
+}
+
+// ---- DASHBOARD ----
+function renderDashboard() {
+  var sessions = getData();
+  var karts = groupByKart(sessions);
+  var kartNums = Object.keys(karts).map(Number).sort(function(a,b){return a-b;});
+
+  var allStats = kartNums.map(function(k) { return Object.assign({ kart: k }, getKartStats(karts[k])); });
+  allStats.sort(function(a,b){return b.overall - a.overall;});
+
+  var totalSessions = sessions.length;
+  var avgScore = allStats.length ? Math.round(allStats.reduce(function(a,b){return a+b.overall;},0)/allStats.length) : 0;
+  var totalIssues = sessions.reduce(function(a,s){return a+(s.issues||[]).length;},0);
+  var bestKart = allStats[0];
+
+  document.getElementById('dash-metrics').innerHTML = [
+    {label:'Totale sessioner', val: totalSessions, sub:'registrerede kørsler'},
+    {label:'Karts vurderet', val: kartNums.length, sub:'unikke karts'},
+    {label:'Gns. score', val: avgScore || '—', sub:'alle karts'},
+    {label:'Registrerede fejl', val: totalIssues, sub:'på tværs af alle karts'}
+  ].map(function(m){return '<div class="metric-card"><div class="metric-label">' + m.label + '</div><div class="metric-value">' + m.val + '</div><div class="metric-sub">' + m.sub + '</div></div>';}).join('');
+
+  // Best kart
+  var bestEl = document.getElementById('dash-best');
+  if (bestKart) {
+    var tierResult = getTier(bestKart.overall);
+    bestEl.innerHTML = '<div class="best-kart-card"><div class="crown">🏆</div><div class="best-kart-num">#' + bestKart.kart + '</div><div class="best-kart-label">Bedste kart</div><div style="margin-top:12px;"><span class="score-badge ' + getScoreBadgeClass(bestKart.overall) + '" style="width:auto;padding:4px 16px;font-size:22px;">' + bestKart.overall + '</span><span class="' + tierResult[1] + '" style="font-family:var(--font-display);font-size:14px;margin-left:8px;letter-spacing:1px;">' + tierResult[0] + '</span></div><div style="margin-top:8px;font-size:12px;color:var(--text-dim);">' + bestKart.sessions + ' sessioner</div></div>';
+  } else {
+    bestEl.innerHTML = '<div class="card"><div class="empty-state"><div class="empty-icon">🏆</div><div class="empty-title">Ingen data endnu</div></div></div>';
+  }
+
+  // Top 5
+  var top5El = document.getElementById('dash-top5');
+  if (allStats.length) {
+    var maxScore = allStats[0].overall;
+    top5El.innerHTML = allStats.slice(0,5).map(function(s,i){return '<div class="top5-item"><span class="top5-pos">' + (i+1) + '</span><span class="top5-kart" onclick="goToProfile(' + s.kart + ')" style="cursor:pointer;">#' + s.kart + '</span><div class="top5-bar-wrap"><div class="top5-bar-track"><div class="top5-bar-fill" style="width:' + (s.overall/maxScore*100) + '%;background:' + getScoreColor(s.overall) + ';"></div></div></div><span class="top5-score" style="color:' + getScoreColor(s.overall) + ';">' + s.overall + '</span></div>';}).join('');
+  } else {
+    top5El.innerHTML = '<div class="empty-state" style="padding:24px;"><div class="empty-title">Ingen data</div></div>';
+  }
+
+  // All table
+  var tbody = document.getElementById('dash-all-body');
+  if (allStats.length) {
+    tbody.innerHTML = allStats.map(function(s,i) {
+      var tierResult = getTier(s.overall);
+      return '<tr onclick="goToProfile(' + s.kart + ')"><td class="rank-num">' + (i+1) + '</td><td><span class="rank-kart-num">#' + s.kart + '</span></td><td><span class="rank-score" style="color:' + getScoreColor(s.overall) + ';">' + s.overall + '</span></td><td><span class="' + tierResult[1] + '" style="font-family:var(--font-display);letter-spacing:1px;font-size:12px;">' + tierResult[0] + '</span></td><td style="color:var(--text-primary);">' + s.sessions + '</td><td><span class="issue-pill ' + (s.issueCount===0?'none':s.issueCount<4?'few':'many') + '">' + s.issueCount + '</span></td></tr>';
+    }).join('');
+  } else {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-dim);">Ingen sessioner registreret endnu</td></tr>';
+  }
+
+  renderDashboardCharts(sessions, allStats);
+}
+
+function renderDashboardCharts(sessions, allStats) {
+  // Issue frequency chart
+  var issueCounts = {};
+  ISSUE_LABELS.forEach(function(l) { issueCounts[l] = 0; });
+  sessions.forEach(function(s) { (s.issues||[]).forEach(function(i) { if(issueCounts[i]!==undefined) issueCounts[i]++; }); });
+  var issueData = Object.entries(issueCounts).filter(function(e){return e[1]>0;}).sort(function(a,b){return b[1]-a[1];}).slice(0,8);
+
+  if (issueChart) issueChart.destroy();
+  var ctx1 = document.getElementById('issueChart');
+  if (ctx1 && issueData.length) {
+    issueChart = new Chart(ctx1, {
+      type: 'bar',
+      data: {
+        labels: issueData.map(function(e){return e[0];}),
+        datasets: [{ data: issueData.map(function(e){return e[1];}), backgroundColor: 'rgba(224,48,48,0.6)', borderColor: '#e03030', borderWidth: 1 }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: '#8a90a0', font: { size: 10 }, maxRotation: 30 }, grid: { color: 'rgba(255,255,255,0.05)' } },
+          y: { ticks: { color: '#8a90a0', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.05)' } }
+        }
+      }
+    });
+  }
+
+  // Score distribution
+  var buckets = { 'Under 60': 0, '60–69': 0, '70–79': 0, '80–89': 0, '90–100': 0 };
+  allStats.forEach(function(s) {
+    if (s.overall >= 90) buckets['90–100']++;
+    else if (s.overall >= 80) buckets['80–89']++;
+    else if (s.overall >= 70) buckets['70–79']++;
+    else if (s.overall >= 60) buckets['60–69']++;
+    else buckets['Under 60']++;
+  });
+  if (scoreDistChart) scoreDistChart.destroy();
+  var ctx2 = document.getElementById('scoreDistChart');
+  if (ctx2) {
+    scoreDistChart = new Chart(ctx2, {
+      type: 'doughnut',
+      data: {
+        labels: Object.keys(buckets),
+        datasets: [{ data: Object.values(buckets), backgroundColor: ['#e03030','#888','#3090e8','#28c870','#e8a020'], borderWidth: 2, borderColor: '#111318' }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'right', labels: { color: '#8a90a0', font: { size: 11 }, boxWidth: 12, padding: 10 } } },
+        cutout: '60%'
+      }
+    });
+  }
+}
+
+// ---- RANKING ----
+function renderRanking(sortBy) {
+  sortBy = sortBy || 'overall';
+  var sessions = getData();
+  var karts = groupByKart(sessions);
+  var kartNums = Object.keys(karts).map(Number);
+  var allStats = kartNums.map(function(k) { return Object.assign({ kart: k, sessions: karts[k] }, getKartStats(karts[k])); });
+  var eliteKarts = getEliteKarts();
+
+  if (sortBy === 'issues') allStats.sort(function(a,b){return a.issueCount-b.issueCount;});
+  else if (sortBy === 'sessions') allStats.sort(function(a,b){return b.sessions.length-a.sessions.length;});
+  else allStats.sort(function(a,b){return b[sortBy]-a[sortBy];});
+
+  var tbody = document.getElementById('ranking-body');
+  if (!allStats.length) {
+    tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:32px;color:var(--text-dim);">Ingen sessioner endnu — registrer din første kørsel</td></tr>';
+    return;
+  }
+  tbody.innerHTML = allStats.map(function(s,i) {
+    var latest = new Date(s.latest);
+    var dateStr = latest.getDate() + '/' + (latest.getMonth()+1);
+    var tierResult = getTier(s.overall);
+    var cnt = typeof s.sessions === 'number' ? s.sessions : s.sessions.length;
+    var isElite = eliteKarts.includes(s.kart);
+    return '<tr>' +
+      '<td class="rank-num">' + (i+1) + '</td>' +
+      '<td><span class="rank-kart-num" onclick="goToProfile(' + s.kart + ')" style="cursor:pointer;">#' + s.kart + '</span></td>' +
+      '<td><div class="rank-bar-wrap"><div class="rank-mini-bar" style="width:' + s.overall + 'px;max-width:80px;background:' + getScoreColor(s.overall) + ';"></div><span class="rank-score" style="color:' + getScoreColor(s.overall) + ';">' + s.overall + '</span></div></td>' +
+      '<td style="color:' + COLOR_MOTOR + ';font-family:var(--font-mono);font-size:12px;">' + s.motor + '</td>' +
+      '<td style="color:' + COLOR_STEERING + ';font-family:var(--font-mono);font-size:12px;">' + s.steering + '</td>' +
+      '<td style="color:' + COLOR_BALANCE + ';font-family:var(--font-mono);font-size:12px;">' + s.balance + '</td>' +
+      '<td style="color:' + COLOR_DRIVING + ';font-family:var(--font-mono);font-size:12px;">' + s.driving + '</td>' +
+      '<td style="color:var(--text-primary);">' + cnt + '</td>' +
+      '<td><span class="issue-pill ' + (s.issueCount===0?'none':s.issueCount<4?'few':'many') + '">' + s.issueCount + ' fejl</span></td>' +
+      '<td style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim);">' + dateStr + '</td>' +
+      '<td style="text-align:center;white-space:nowrap;">' +
+        '<button class="elite-toggle ' + (isElite?'active':'') + '" onclick="toggleElite(' + s.kart + ')" title="' + (isElite?'Fjern fra':'Tilføj til') + ' elite">' + (isElite?'⚡':'☆') + '</button>' +
+        '<button class="btn btn-danger btn-xs" onclick="deleteKartSessions(' + s.kart + ')" title="Slet alle sessioner for dette kart" style="margin-left:4px;">🗑</button>' +
+      '</td></tr>';
+  }).join('');
+}
+
+// ---- PROFILE ----
+function renderProfileSelector() {
+  var sessions = getData();
+  var karts = Object.keys(groupByKart(sessions)).map(Number).sort(function(a,b){return a-b;});
+  var sel = document.getElementById('profile-kart-selector');
+  sel.innerHTML = karts.map(function(k) {
+    return '<button class="btn btn-secondary" onclick="renderProfile(' + k + ')" style="font-family:var(--font-display);font-size:18px;font-weight:700;padding:8px 20px;">#' + k + '</button>';
+  }).join('') || '<p style="color:var(--text-dim);font-size:13px;">Ingen karts registreret endnu.</p>';
+}
+
+function goToProfile(kartNum) {
+  showPage('profile');
+  setTimeout(function() { renderProfile(kartNum); }, 50);
+}
+
+function renderProfile(kartNum) {
+  var sessions = getData().filter(function(s) { return s.kart === kartNum; });
+  sessions.sort(function(a,b) { return new Date(b.datetime) - new Date(a.datetime); });
+  var stats = getKartStats(sessions);
+  if (!stats) return;
+
+  // Highlight active button
+  document.querySelectorAll('#profile-kart-selector .btn').forEach(function(btn) {
+    btn.classList.toggle('btn-primary', btn.textContent.trim() === '#' + kartNum);
+    btn.classList.toggle('btn-secondary', btn.textContent.trim() !== '#' + kartNum);
+  });
+
+  var tierResult = getTier(stats.overall);
+  var tier = tierResult[0];
+  var cls = tierResult[1];
+
+  // Issue frequency
+  var issueCounts = {};
+  sessions.forEach(function(s) { (s.issues||[]).forEach(function(i) { issueCounts[i] = (issueCounts[i]||0)+1; }); });
+  var topIssues = Object.entries(issueCounts).sort(function(a,b){return b[1]-a[1];}).slice(0,5);
+
+  // Analysis
+  var analysis = generateAnalysis(sessions, stats, topIssues);
+
+  var html = '<div class="profile-header"><div style="text-align:center;"><div class="profile-kart-num">#' + kartNum + '</div><div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim);">Kart</div></div><div class="profile-stats" style="flex:1;"><div style="display:flex;align-items:center;gap:16px;margin-bottom:12px;"><span class="score-badge ' + getScoreBadgeClass(stats.overall) + '" style="width:56px;height:56px;font-size:22px;">' + stats.overall + '</span><div><div class="overall-tier ' + cls + '" style="font-size:20px;">' + tier + '</div><div style="font-size:12px;color:var(--text-dim);margin-top:2px;">' + stats.sessions + ' sessioner · ' + stats.issueCount + ' fejl registreret</div></div></div>' +
+    '<div class="grid-4" style="gap:8px;">' +
+    '<div class="metric-card card-sm" style="text-align:left;"><div class="metric-label" style="color:' + COLOR_MOTOR + ';">Motor</div><div style="font-family:var(--font-display);font-size:24px;font-weight:700;color:' + COLOR_MOTOR + ';">' + stats.motor + '</div></div>' +
+    '<div class="metric-card card-sm" style="text-align:left;"><div class="metric-label" style="color:' + COLOR_STEERING + ';">Styring</div><div style="font-family:var(--font-display);font-size:24px;font-weight:700;color:' + COLOR_STEERING + ';">' + stats.steering + '</div></div>' +
+    '<div class="metric-card card-sm" style="text-align:left;"><div class="metric-label" style="color:' + COLOR_BALANCE + ';">Balance</div><div style="font-family:var(--font-display);font-size:24px;font-weight:700;color:' + COLOR_BALANCE + ';">' + stats.balance + '</div></div>' +
+    '<div class="metric-card card-sm" style="text-align:left;"><div class="metric-label" style="color:' + COLOR_DRIVING + ';">Køreopl.</div><div style="font-family:var(--font-display);font-size:24px;font-weight:700;color:' + COLOR_DRIVING + ';">' + stats.driving + '</div></div>' +
+    '</div></div></div>' +
+    '<div class="grid-2" style="margin-bottom:24px;gap:20px;"><div><div class="section-title">Automatisk analyse</div><div id="profile-analysis">' + analysis + '</div></div><div><div class="section-title">Radardiagram (gennemsnit)</div><div class="card"><div style="position:relative;height:240px;"><canvas id="profileRadar" role="img" aria-label="Radardiagram for kart #' + kartNum + '"></canvas></div></div></div></div>';
+
+  if (topIssues.length) {
+    html += '<div style="margin-bottom:24px;"><div class="section-title">Hyppigste problemer</div><div class="card">' +
+      topIssues.map(function(e) { var issue = e[0]; var cnt = e[1]; return '<div class="score-bar-row" style="margin-bottom:8px;"><span style="min-width:180px;font-size:12px;color:var(--text-secondary);">' + issue + '</span><div class="score-bar-track"><div class="score-bar-fill" style="width:' + (cnt/sessions.length*100) + '%;background:#e03030;"></div></div><span style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim);min-width:60px;text-align:right;">' + cnt + '× (' + Math.round(cnt/sessions.length*100) + '%)</span></div>'; }).join('') +
+      '</div></div>';
+  }
+
+  if (sessions.length > 1) {
+    html += '<div style="margin-bottom:24px;"><div class="section-title">Scoreudvikling over tid</div><div class="card"><div style="position:relative;height:180px;"><canvas id="trendChart" role="img" aria-label="Scoreudvikling over tid for kart #' + kartNum + '"></canvas></div></div></div>';
+  }
+
+  html += '<div><div class="section-title">Sessionshistorik (' + sessions.length + ')</div><div id="profile-sessions"></div></div>';
+
+  document.getElementById('profile-content').innerHTML = html;
+
+  // Build profile radar
+  var avgRatings = {};
+  Object.values(RATINGS_DEF).flat().forEach(function(f) {
+    avgRatings[f.key] = Math.round(sessions.reduce(function(a,s){return a+(s.ratings[f.key]||5);},0)/sessions.length);
+  });
+  var profileRadarCtx = document.getElementById('profileRadar');
+  if (profileRadarCtx) {
+    new Chart(profileRadarCtx, {
+      type: 'radar',
+      data: {
+        labels: ['Acceleration','Topfart','Styrepræcision','Stabilitet','Greb','Bremser','Komfort','Selvtillid'],
+        datasets: [{
+          data: [avgRatings.acceleration,avgRatings.topspeed,avgRatings.precision,avgRatings.stability,avgRatings.grip,avgRatings.brakes,avgRatings.comfort,avgRatings.confidence],
+          backgroundColor: 'rgba(232,160,32,0.15)', borderColor: 'rgba(232,160,32,0.7)',
+          pointBackgroundColor: '#e8a020', pointRadius: 3, borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { r: { min:0,max:10, ticks:{display:false}, grid:{color:'rgba(255,255,255,0.08)'}, angleLines:{color:'rgba(255,255,255,0.08)'}, pointLabels:{color:'#8a90a0',font:{size:10,family:'Barlow'}} } }
+      }
+    });
+  }
+
+  // Trend chart
+  if (sessions.length > 1) {
+    var sorted = sessions.slice().sort(function(a,b){return new Date(a.datetime)-new Date(b.datetime);});
+    var trendCtx = document.getElementById('trendChart');
+    if (trendCtx) {
+      new Chart(trendCtx, {
+        type: 'line',
+        data: {
+          labels: sorted.map(function(s) { var d=new Date(s.datetime); return d.getDate() + '/' + (d.getMonth()+1); }),
+          datasets: [{
+            label: 'Overall', data: sorted.map(function(s){return calcScores(s.ratings).overall;}),
+            borderColor: '#e8a020', backgroundColor: 'rgba(232,160,32,0.08)',
+            pointBackgroundColor: '#e8a020', tension: 0.3, fill: true, borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks:{color:'#8a90a0',font:{size:10}}, grid:{color:'rgba(255,255,255,0.05)'} },
+            y: { min:0,max:100, ticks:{color:'#8a90a0',font:{size:10}}, grid:{color:'rgba(255,255,255,0.05)'} }
+          }
+        }
+      });
+    }
+  }
+
+  // Sessions
+  var sessDiv = document.getElementById('profile-sessions');
+  sessDiv.innerHTML = sessions.map(function(s) {
+    var sc = calcScores(s.ratings);
+    var d = new Date(s.datetime);
+    var dateStr = d.getDate() + '/' + (d.getMonth()+1) + '/' + d.getFullYear() + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+    return '<div class="session-card"><div class="session-header"><span style="display:flex;align-items:center;gap:10px;"><span class="score-badge ' + getScoreBadgeClass(sc.overall) + '" style="width:40px;height:40px;font-size:16px;">' + sc.overall + '</span><span style="font-size:13px;color:var(--text-secondary);">' + s.laps + ' omgange' + (s.laptime?' · Bedste: '+s.laptime+' sek':'') + '</span></span><span style="display:flex;align-items:center;gap:10px;"><span class="session-date">' + dateStr + '</span><button onclick="deleteSession(' + s.id + ')" title="Slet session" style="background:transparent;border:1px solid var(--border-strong);color:#e05050;border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer;">🗑 Slet</button></span></div>' +
+      '<div style="display:flex;gap:16px;font-size:11px;margin-top:4px;"><span style="color:' + COLOR_MOTOR + ';">Motor ' + sc.motor + '</span><span style="color:' + COLOR_STEERING + ';">Styring ' + sc.steering + '</span><span style="color:' + COLOR_BALANCE + ';">Balance ' + sc.balance + '</span><span style="color:' + COLOR_DRIVING + ';">Køreopl. ' + sc.driving + '</span></div>' +
+      (s.issues&&s.issues.length ? '<div class="session-issues-list">' + s.issues.map(function(i){return '<span class="mini-tag">' + i + '</span>';}).join('') + '</div>' : '') +
+      (s.notes ? '<div class="note-text">"' + s.notes + '"</div>' : '') +
+      '</div>';
+  }).join('');
+}
+
+function generateAnalysis(sessions, stats, topIssues) {
+  var blocks = [];
+  var avgR = {};
+  Object.values(RATINGS_DEF).flat().forEach(function(f) {
+    avgR[f.key] = sessions.reduce(function(a,s){return a+(s.ratings[f.key]||5);},0)/sessions.length;
+  });
+
+  if (stats.motor - stats.steering > 15)
+    blocks.push('Karten scorer <strong>markant højere på motor</strong> (' + stats.motor + ') end på styring (' + stats.steering + '). Det kan give en hurtig men svær-at-kontrollere oplevelse.');
+  else if (stats.steering - stats.motor > 15)
+    blocks.push('Styringen er <strong>klar styrke</strong> (' + stats.steering + ') men motorens ydelse er begrænset (' + stats.motor + '). Karten er præcis men mangler punch.');
+
+  if (avgR.acceleration - avgR.topspeed > 2.5)
+    blocks.push('Stærk <strong>acceleration</strong> men begrænset topfart — karten egner sig bedst til tekniske baner med mange sving.');
+  else if (avgR.topspeed - avgR.acceleration > 2.5)
+    blocks.push('God <strong>topfart</strong> men langsom reaktion fra lave hastigheder. Karten vinder på langsektioner men mister tid i sving.');
+
+  if (avgR.oversteer < 4.5)
+    blocks.push('Bemærk: karten har tendens til <strong>overstyring</strong> (lav score på overstyring-parameter). Bagenden kan gå ud — vær forsigtig med gas tidligt i sving.');
+  if (avgR.understeer < 4.5)
+    blocks.push('Karten viser tegn på <strong>understyring</strong>. Bremsepunkter skal rykkes tidligt, og farten skal reduceres mere ind i svingene.');
+
+  if (avgR.brakes < 5)
+    blocks.push('Lav bremsescore (' + avgR.brakes.toFixed(1) + '/10): bremseydelsen er <strong>under standard</strong>. Kunden bør advares, og bremserne bør inspiceres.');
+
+  if (topIssues.length > 0) {
+    var freq = topIssues[0];
+    blocks.push('Hyppigste problem: <strong>' + freq[0] + '</strong> er observeret i ' + freq[1] + ' ud af ' + sessions.length + ' sessioner. ' + getIssueRecommendation(freq[0]));
+  }
+
+  var tierResult = getTier(stats.overall);
+  if (stats.overall >= 85) blocks.push('Samlet vurdering: Karten er i <strong>fremragende stand</strong> og er en af de bedste i flåden.');
+  else if (stats.overall < 60) blocks.push('Samlet vurdering: Karten er <strong>under acceptabel standard</strong>. Overvej mekanisk eftersyn før næste session.');
+
+  if (!blocks.length) blocks.push('Karten fremstår afbalanceret på tværs af alle parametre. Fortsæt med at registrere sessioner for mere præcis analyse.');
+
+  return blocks.map(function(b){return '<div class="analysis-block"><p>' + b + '</p></div>';}).join('');
+}
+
+function getIssueRecommendation(issue) {
+  var recs = {
+    'Vibrerer': 'Kontroller dæk, fælge og drivlinje for ubalance.',
+    'Trækker venstre': 'Kontroller dæktryk og hjulstilling.',
+    'Trækker højre': 'Kontroller dæktryk og hjulstilling.',
+    'Dårlige bremser': 'Brems- og kaliperinspektion anbefales.',
+    'Ujævn acceleration': 'Karburator eller brændstofsystem bør efterses.',
+    'Mangler topfart': 'Motor og gearkasse bør kontrolleres.',
+    'Tung styring': 'Styrepindsforbindelsen og hjulene bør smøres.',
+    'Løs styring': 'Styr og koblingsstyr bør strammes.',
+    'Ustabil bagende': 'Bagsporvidde og hjulstilling bør justeres.',
+    'Dårligt greb': 'Dæk bør udskiftes eller opvarmes korrekt.',
+    'Andet': 'Se noter fra chaufførerne for detaljer.'
+  };
+  return recs[issue] || '';
+}
+
+// ---- NAV ----
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+  document.querySelectorAll('.nav-tab').forEach(function(t) { t.classList.remove('active'); });
+  document.getElementById('page-' + id).classList.add('active');
+  var tab = document.querySelector('.nav-tab[onclick="showPage(\'' + id + '\')"]');
+  if (tab) tab.classList.add('active');
+  if (id === 'dashboard') renderDashboard();
+  if (id === 'ranking') renderRanking();
+  if (id === 'profile') renderProfileSelector();
+  if (id === 'elite') renderElite();
+}
+
+function renderElite() {
+  var sortBy = (document.getElementById('elite-sort')||{}).value || 'laptime';
+  var sessions = getData();
+  var karts = groupByKart(sessions);
+  var eliteKarts = getEliteKarts();
+
+  var rows = eliteKarts.map(function(k) {
+    var sess = karts[k] || [];
+    if (!sess.length) return null;
+    var stats = getKartStats(sess);
+    var laps = sess.map(function(s) { return parseFloat(s.laptime); }).filter(function(n) { return !isNaN(n) && n > 0; });
+    var best = laps.length ? Math.min.apply(null, laps) : null;
+    var avgLap = laps.length ? (laps.reduce(function(a,b){return a+b;},0)/laps.length) : null;
+    return { kart: k, stats: stats, best: best, avgLap: avgLap, sessions: sess.length };
+  }).filter(Boolean);
+
+  var sorters = {
+    laptime: function(a,b) { return (a.best === null ? Infinity : a.best) - (b.best === null ? Infinity : b.best); },
+    overall: function(a,b) { return b.stats.overall - a.stats.overall; },
+    motor: function(a,b) { return b.stats.motor - a.stats.motor; },
+    combined: function(a,b) {
+      var sa = a.stats.overall - (a.best ? a.best * 1.5 : 60);
+      var sb = b.stats.overall - (b.best ? b.best * 1.5 : 60);
+      return sb - sa;
+    }
+  };
+  rows.sort(sorters[sortBy] || sorters.laptime);
+
+  var podium = document.getElementById('elite-podium');
+  var tbody = document.getElementById('elite-body');
+
+  if (!rows.length) {
+    podium.innerHTML = '';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-dim);">Ingen elite-karts markeret endnu. Gå til Ranglisten og klik på ☆ for at markere karts.</td></tr>';
+    return;
+  }
+
+  var medals = ['🥇','🥈','🥉'];
+  var podiumColors = ['#e8a020','#c0c5d0','#b87333'];
+  podium.innerHTML = '<div class="grid-3" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;">' +
+    rows.slice(0,3).map(function(r,i) {
+      return '<div class="card" style="border:1px solid ' + podiumColors[i] + ';text-align:center;padding:18px;"><div style="font-size:28px;">' + medals[i] + '</div><div style="font-size:11px;color:var(--text-dim);letter-spacing:1px;margin-top:4px;">#' + (i+1) + '</div><div style="font-size:32px;font-weight:700;color:' + podiumColors[i] + ';margin:6px 0;">Kart ' + r.kart + '</div><div style="font-family:var(--font-mono);font-size:18px;color:var(--text-primary);">' + (r.best ? r.best.toFixed(2)+' sek' : '—') + '</div><div style="font-size:11px;color:var(--text-dim);margin-top:4px;">Overall ' + r.stats.overall + ' · ' + r.sessions + ' sessioner</div></div>';
+    }).join('') + '</div>';
+
+  tbody.innerHTML = rows.map(function(r,i) {
+    return '<tr>' +
+      '<td style="font-family:var(--font-mono);color:' + (i<3?podiumColors[i]:'var(--text-dim)') + ';font-weight:600;">' + (i<3?medals[i]:'#'+(i+1)) + '</td>' +
+      '<td style="color:var(--text-primary);font-weight:600;">Kart ' + r.kart + '</td>' +
+      '<td style="font-family:var(--font-mono);color:#e8a020;">' + (r.best ? r.best.toFixed(2)+' sek' : '—') + '</td>' +
+      '<td style="font-family:var(--font-mono);color:var(--text-secondary);">' + (r.avgLap ? r.avgLap.toFixed(2)+' sek' : '—') + '</td>' +
+      '<td><span class="score-badge ' + getScoreBadgeClass(r.stats.overall) + '" style="width:36px;height:36px;font-size:13px;">' + r.stats.overall + '</span></td>' +
+      '<td style="color:var(--text-secondary);">' + r.stats.motor + '</td>' +
+      '<td style="color:var(--text-dim);">' + r.sessions + '</td>' +
+      '</tr>';
+  }).join('');
+}
+
+function showToast(msg, isError) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.remove('error');
+  if (isError) t.classList.add('error');
+  t.classList.add('show');
+  setTimeout(function() { t.classList.remove('show'); }, 3000);
+}
+
+async function deleteSession(id) {
+  if (!confirm('Vil du slette denne session? Handlingen kan ikke fortrydes.')) return;
+  // Optimistic update
+  var currentKart = null;
+  var sess = _cachedSessions.find(function(s) { return s.id === id; });
+  if (sess) currentKart = sess.kart;
+  _cachedSessions = _cachedSessions.filter(function(s) { return s.id !== id; });
+  showToast('Session slettet');
+  renderDashboard();
+  renderRanking();
+  renderProfileSelector();
+  if (currentKart && _cachedSessions.some(function(s) { return s.kart === currentKart; })) {
+    renderProfile(currentKart);
+  }
+  await apiDeleteSession(id);
+}
+
+function shareLink() {
+  var url = window.top ? window.top.location.href : window.location.href;
+  var finalUrl = url || window.location.href;
+  if (navigator.share) {
+    navigator.share({ title: 'KartMetrics', url: finalUrl }).catch(function(){});
+    return;
+  }
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(finalUrl)
+      .then(function() { showToast('Link kopieret: ' + finalUrl); })
+      .catch(function() { prompt('Kopiér linket:', finalUrl); });
+  } else {
+    prompt('Kopiér linket:', finalUrl);
+  }
+}
+
+// ---- INIT ----
+document.addEventListener('DOMContentLoaded', function() {
+  buildForm();
+  startSync();
+});
+
+async function loadDemoData() {
+  var demo = [
+    { id:1, kart:3, datetime:'2025-06-01T14:20', laps:18, laptime:'31.82', ratings:{acceleration:8,torque:7,topspeed:9,precision:8,response:7,stability:7,understeer:7,oversteer:6,grip:8,brakes:8,comfort:7,confidence:8,overall_feel:8}, issues:[], notes:'Meget hurtig på langsektionen. Motor lyder frisk.' },
+    { id:2, kart:3, datetime:'2025-06-02T10:05', laps:22, laptime:'31.60', ratings:{acceleration:9,torque:8,topspeed:9,precision:8,response:8,stability:7,understeer:7,oversteer:6,grip:8,brakes:8,comfort:7,confidence:9,overall_feel:9}, issues:[], notes:'' },
+    { id:3, kart:7, datetime:'2025-06-01T15:30', laps:15, laptime:'33.10', ratings:{acceleration:5,torque:5,topspeed:6,precision:6,response:5,stability:5,understeer:5,oversteer:5,grip:5,brakes:4,comfort:5,confidence:5,overall_feel:5}, issues:['Dårlige bremser','Ujævn acceleration'], notes:'Bremserne bider sent. Acceleration virker ikke jævn.' },
+    { id:4, kart:7, datetime:'2025-06-02T11:00', laps:18, laptime:'33.80', ratings:{acceleration:4,torque:4,topspeed:5,precision:5,response:5,stability:4,understeer:5,oversteer:4,grip:4,brakes:3,comfort:4,confidence:4,overall_feel:4}, issues:['Dårlige bremser','Ustabil bagende','Vibrerer'], notes:'Kraftige vibrationer på langsiden. Bagenden slipper let ud af hårnålen.' },
+    { id:5, kart:12, datetime:'2025-06-01T16:00', laps:20, laptime:'32.40', ratings:{acceleration:7,torque:6,topspeed:7,precision:9,response:9,stability:8,understeer:8,oversteer:7,grip:7,brakes:7,comfort:8,confidence:8,overall_feel:7}, issues:['Tung styring'], notes:'Styringen lidt tung i langsomme sving, men præcis.' },
+    { id:6, kart:12, datetime:'2025-06-03T09:30', laps:25, laptime:'32.15', ratings:{acceleration:7,torque:7,topspeed:7,precision:9,response:9,stability:9,understeer:8,oversteer:8,grip:7,brakes:7,comfort:8,confidence:9,overall_feel:8}, issues:[], notes:'' },
+    { id:7, kart:5, datetime:'2025-06-02T13:45', laps:16, laptime:'34.50', ratings:{acceleration:6,torque:5,topspeed:5,precision:5,response:4,stability:4,understeer:4,oversteer:3,grip:4,brakes:5,comfort:4,confidence:4,overall_feel:4}, issues:['Vibrerer','Trækker højre','Løs styring'], notes:'Styringen føles løs. Trækker tydeligt til højre.' },
+    { id:8, kart:9, datetime:'2025-06-01T17:00', laps:21, laptime:'31.95', ratings:{acceleration:8,torque:8,topspeed:8,precision:7,response:8,stability:8,understeer:7,oversteer:7,grip:8,brakes:9,comfort:8,confidence:8,overall_feel:8}, issues:[], notes:'Solid allround kart. Gode bremser.' }
+  ];
+  for (var i = 0; i < demo.length; i++) {
+    await apiSaveSession(demo[i]);
+  }
+}
+</script>
+</body>
+</html>
